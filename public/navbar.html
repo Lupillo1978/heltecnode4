@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sidebar colapsable con íconos</title>
+
+  <!-- Incluimos los íconos de Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      transition: margin-left 0.3s;
+    }
+
+    /* --- Botón hamburguesa --- */
+    .toggle-btn {
+      position: fixed;
+      top: 15px;
+      left: 15px;
+      font-size: 24px;
+      color: white;
+      background-color: #333;
+      border: none;
+      padding: 10px 12px;
+      cursor: pointer;
+      border-radius: 4px;
+      z-index: 1000;
+    }
+
+    /* --- Sidebar --- */
+    .sidebar {
+      height: 100vh;
+      width: 160px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      background-color:aqua;
+      overflow-x: hidden;
+      transition: width 0.3s;
+      padding-top: 60px;
+    }
+
+    .sidebar a {
+      display: flex;
+      align-items: center;
+      color: black;
+      padding: 12px 20px;
+      text-decoration: none;
+      font-size: 16px;
+      transition: all 0.3s;
+    }
+
+    .sidebar a i {
+      margin-right: 15px;
+      width: 20px;
+      text-align: center;
+      font-size: 20px;
+    }
+
+    .sidebar a:hover {
+      background-color:beige;
+    }
+
+    /* --- Estado colapsado --- */
+    .sidebar.collapsed {
+      width: 70px;
+    }
+
+    .sidebar.collapsed a span {
+      display: none; /* Oculta el texto */
+    }
+
+    .sidebar.collapsed a {
+      justify-content: center;
+    }
+
+    /* --- Contenido principal --- */
+    .content {
+      margin-left: 220px;
+      padding: 20px;
+      transition: margin-left 0.3s;
+    }
+
+    .collapsed + .content {
+      margin-left: 70px;
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- Botón de menú -->
+  <button class="toggle-btn" id="toggle-btn">
+    <i class="fas fa-bars"></i>
+  </button>
+
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <a href="#"><i class="fas fa-home"></i><span>Inicio</span></a>
+    <a href="#"><i class="fas fa-user"></i><span>Perfil</span></a>
+    <a href="#"><i class="fas fa-cog"></i><span>Configuración</span></a>
+    <a href="#"><i class="fas fa-question-circle"></i><span>Ayuda</span></a>
+    <a href="#"><i class="fas fa-sign-out-alt"></i><span>Salir</span></a>
+  </div>
+
+  <!-- Contenido principal -->
+  <div class="content" id="content">
+    <h1>Navbar vertical colapsable</h1>
+    <p>Puedes contraer o expandir el menú usando el botón de hamburguesa.</p>
+  </div>
+
+  <!-- Script para el botón -->
+  <script>
+    const toggleBtn = document.getElementById('toggle-btn');
+    const sidebar = document.getElementById('sidebar');
+    const content = document.getElementById('content');
+
+    toggleBtn.addEventListener('click', () => {
+      sidebar.classList.toggle('collapsed');
+      content.classList.toggle('collapsed');
+    });
+  </script>
+
+</body>
+</html>

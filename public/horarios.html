@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Alimentadores AD&M</title>
+  <link rel="stylesheet" href="./css/estilohorarios.css" />
+  <script defer src="./js/script.js"></script>
+  <style>
+    h1 {color: rgb(255, 0, 0); font-family:'Times New Roman', Times, serif;}
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+    th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
+    th { background-color: #0a2df3; color: white; }
+    td { background-color: #cddfdf; color: black;}
+    button { padding: 5px 5px; font-size: 13px; background-color: #0aebf3; cursor: pointer; border-radius: 10px; }
+    button[type="submit"] {background-color: #12f30a;}
+    input[type="number"] { width: 100px; }
+    input[type="time"] { width: 120px; }
+    label {color:blue;}
+    #totalRow { font-weight: bold; background-color: #e0e0e0; }
+  </style>
+</head>
+<body>
+
+   <header>
+     <nav class="navbar">
+       <div class="logo">🦐 ALIMENTADORES  AD&M</div>
+        <button class="menu-toggle" id="menu-toggle">
+         ☰
+        </button>
+       
+        
+      
+       <div class="text-end mb-3">
+       <strong>Hora actual (Sinaloa):</strong> <span id="clock">--:--:--</span>
+       </div>
+
+      </nav>
+    </header>
+      <br><br><br><br><br>
+    
+   <form id="scheduleForm">
+     <table>
+       <thead>
+         <tr>
+           <th>Horarios</th>
+           <th>Hora Inicio</th>
+           <th>Hora Fin</th>
+           <th>Encendido (s)</th>
+           <th>Apagado (s)</th>
+           <th>Alimento (Kgs)</th>
+         </tr>
+       </thead>
+       <tbody id="tableBody">
+         <script>
+           for (let i = 1; i <= 6; i++) {
+             document.write(`
+               <tr>
+                 <td>H ${i}</td>
+                 <td><input type="time" name="start${i}" onchange="calcularKilos(${i})"></td>
+                 <td><input type="time" name="end${i}" onchange="calcularKilos(${i})"></td>
+                 <td><input type="number" name="on${i}" min="1" oninput="calcularKilos(${i})"></td>
+                 <td><input type="number" name="off${i}" min="1" oninput="calcularKilos(${i})"></td>
+                 <td><input type="text" name="kg${i}" id="kg${i}" readonly></td>
+               </tr>
+               `);
+                }
+          </script>
+       </tbody>
+     </table>
+     <nav class="navbar2">
+       <p style="color: red;" id="totalRow">Kilos de Alimento diario: <span id="totalKg">0.00</span> kg</p>
+       <button style="margin-right: 100px;" type="button" onclick="enviarHora()">Enviar hora actual</button>
+       <label for="nodoID"><strong>Alimentador #:</strong></label>
+        <input style="margin-right: 100px;" type="number" id="nodoID" name="nodoID" required>
+        <button type="submit">Enviar configuración</button>
+     </nav>
+      </form>
+    
+    <div id="response" style="margin-top:20px;"></div>
+
+  <script>
+    const form = document.getElementById('scheduleForm');
+
+    // 🔹 Convierte hora (HH:MM) a segundos desde medianoche
+    function horaASegundos(hora) {
+      if (!hora) return 0;
+      const [hh, mm] = hora.split(':').map(Number);
+      return hh * 3600 + mm * 60;
+    }
+
+    // 🔹 Calcula los kilos estimados por bloque y el total diario
+    function calcularKilos(i) {
+      const start = document.querySelector(`[name="start${i}"]`).value;
+      const end = document.querySelector(`[name="end${i}"]`).value;
+      const on = parseFloat(document.querySelector(`[name="on${i}"]`).value);
+      const off = parseFloat(document.querySelector(`[name="off${i}"]`).value);
+      const kgField = document.getElementById(`kg${i}`);
+
+      let kg = 0;
+
+      if (start && end && on > 0 && off >= 0) {
+        const duracion = horaASegundos(end) - horaASegundos(start); // duración del bloque
+        if (duracion > 0) {
+          const ciclo = on + off;
+          const ciclos = Math.floor(duracion / ciclo); // cuántos ciclos completos caben
+          const tiempoTotalOn = ciclos * on;
+          kg = tiempoTotalOn * 0.07; // 70 g/s → 0.07 kg/s
+        }
+      }
+
+      kgField.value = kg.toFixed(2);
+
+      // 🔹 Calcular total diario
+      let total = 0;
+      for (let j = 1; j <= 6; j++) {
+        const val = parseFloat(document.getElementById(`kg${j}`)?.value || 0);
+        if (!isNaN(val)) total += val;
+      }
+      document.getElementById('totalKg').textContent = total.toFixed(2);
+    }
+
+    // 🔹 Enviar configuración al servidor
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(form);
+      const blocks = [];
+
+      for (let i = 1; i <= 6; i++) {
+        const start = formData.get(`start${i}`);
+        const end = formData.get(`end${i}`);
+        const on = formData.get(`on${i}`);
+        const off = formData.get(`off${i}`);
+        const kg = formData.get(`kg${i}`);
+
+        if (start && end && on && off) {
+          blocks.push({
+            id: i,
+            start,
+            end,
+            on: parseInt(on),
+            off: parseInt(off),
+            kg: parseFloat(kg) || 0
+          });
+        }
+      }
+
+      const payload = {
+        nodoID: parseInt(formData.get('nodoID')),
+        blocks
+      };
+
+      const response = await fetch('/send-schedule', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const text = await response.text();
+      document.getElementById('response').innerText = text;
+    });
+
+    // 🔹 Enviar hora actual al nodo
+    async function enviarHora() {
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2, '0');
+      const mm = String(now.getMinutes()).padStart(2, '0');
+      const horaActual = `${hh}:${mm}`;
+
+      const res = await fetch('/send-time', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ hora: horaActual })
+      });
+
+      const text = await res.text();
+      document.getElementById('response').innerText = text;
+    }
+  </script>
+</body>
+</html>

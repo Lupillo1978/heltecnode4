@@ -1,0 +1,85 @@
+body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      transition: margin-left 0.3s;
+    }
+
+    h1 {color: red;
+        font-family: 'Times New Roman', Times, serif;
+    }
+
+    p {color: blue;}
+
+    /* --- Botón hamburguesa --- */
+    .amburguesa {
+      position: fixed;
+      top: 15px;
+      left: 15px;
+      font-size: 15px;
+      color: white;
+      background-color: #333;
+      border: none;
+      padding: 10px 12px;
+      cursor: pointer;
+      border-radius: 4px;
+      z-index: 1000;
+    }
+
+    /* --- Sidebar --- */
+    .lista {
+      height: 100vh;
+      width: 160px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      background-color:chartreuse;
+      overflow-x: hidden;
+      transition: width 0.3s;
+      padding-top: 60px;
+    }
+
+    .lista a {
+      display: flex;
+      align-items: center;
+      color: black;
+      padding: 12px 20px;
+      text-decoration: none;
+      font-size: 16px;
+      transition: all 0.3s;
+    }
+
+    .lista a i {
+      margin-right: 15px;
+      width: 20px;
+      text-align: center;
+      font-size: 20px;
+    }
+
+    .lista a:hover {
+      background-color:beige;
+    }
+
+    /* --- Estado colapsado --- */
+    .lista.collapsed {
+      width: 70px;
+    }
+
+    .lista.collapsed a span {
+      display: none; /* Oculta el texto */
+    }
+
+    .lista.collapsed a {
+      justify-content: center;
+    }
+
+    /* --- Contenido principal --- */
+    .content  {
+      margin-left: 220px;
+      padding: 20px;
+      transition: margin-left 0.3s;
+    }
+
+    .collapsed + .content  {
+      margin-left: 70px;
+    }
